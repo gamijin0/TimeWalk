@@ -1,10 +1,12 @@
+import pyglet
 import cocos
 from source.TimeWalk import TimeWalk
-
-
+from source.TimeWalk.mouse import MouseDisplay
 
 
 if(__name__=="__main__"):
-    cocos.director.director.init(fullscreen=True)
-    cocos.director.director.run(cocos.scene.Scene(TimeWalk()))
+
+
+    cocos.director.director.init(fullscreen=False)
+    cocos.director.director.run(cocos.scene.Scene(TimeWalk(),MouseDisplay()))
 
