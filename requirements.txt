@@ -1,1 +1,2 @@
-cocos2d-0.6.4
+pyglet
+six
