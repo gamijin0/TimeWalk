@@ -9,3 +9,4 @@ class TimeWalk():
     def __init__(self):
         # director.run(scene=Scene(StartMenuLayer()))
         director.run(scene=Scene(PlayerLayer()))
+
