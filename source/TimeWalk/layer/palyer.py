@@ -31,7 +31,12 @@ class Bullet(Sprite):
 class EnemySprite(Sprite):
     #敌人
     def __init__(self,x,y):
-        self.ship_image = pyglet.image.load(os.path.normpath("../static/rocket-ship-2.png"))
+        enemy_file_list = [
+            "space-ship","space-ship","rocket-ship-2","space-shuttle-2","ufo"
+        ]
+        from random import randint
+
+        self.ship_image = pyglet.image.load(os.path.normpath("../static/%s.png" % (enemy_file_list[randint(0,len(enemy_file_list)-1)]) ))
         super(EnemySprite, self).__init__(self.ship_image)
         self.scale=0.2 #大小
         self.do(Rotate(180,duration=0))
@@ -43,7 +48,7 @@ class EnemySprite(Sprite):
 
 
 
-    def fly(self,target,speed=40):
+    def fly(self,target,speed=60):
         import math
         dx = target.x-self.x
         dy = target.y-self.y
@@ -133,7 +138,7 @@ class PlayerLayer(Layer):
     #用于检测撞击
     def check_hit(self,*args,**kwargs):
         self.time +=1
-        if(self.time>20):
+        if(self.time>10):
             self.generateEnemy()
             self.time=0
 
