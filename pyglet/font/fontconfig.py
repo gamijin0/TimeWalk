@@ -51,7 +51,7 @@ from pyglet.font.base import FontException
  FcResultNoMatch,
  FcResultTypeMismatch,
  FcResultNoId,
- FcResultOutOfMemory) = range(5)
+ FcResultOutOfMemory) = list(range(5))
 FcResult = c_int
 
 FC_FAMILY = asbytes('family')
@@ -75,11 +75,11 @@ FC_SLANT_ITALIC = 100
  FcTypeMatrix,
  FcTypeCharSet,
  FcTypeFTFace,
- FcTypeLangSet) = range(9)
+ FcTypeLangSet) = list(range(9))
 FcType = c_int
 
 (FcMatchPattern,
- FcMatchFont) = range(2)
+ FcMatchFont) = list(range(2))
 FcMatchKind = c_int
 
 
@@ -216,7 +216,7 @@ class FontConfigPattern(object):
         if not value:
             return
 
-        if isinstance(value, unicode):
+        if isinstance(value, str):
             value  = value.encode('utf8')
 
         self._fontconfig.FcPatternAddString(self._pattern, name, asbytes(value))

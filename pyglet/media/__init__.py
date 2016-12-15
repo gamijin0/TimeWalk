@@ -157,7 +157,7 @@ class MediaThread(object):
         the value of `stop` after each sleep or wait and to return if set.
         '''
         if _debug:
-            print 'MediaThread.stop()'
+            print('MediaThread.stop()')
         with self.condition:
             self.stopped = True
             self.condition.notify()
@@ -172,7 +172,7 @@ class MediaThread(object):
 
         '''
         if _debug:
-            print 'MediaThread.sleep(%r)' % timeout
+            print('MediaThread.sleep(%r)' % timeout)
         with self.condition:
             self.condition.wait(timeout)
 
@@ -183,7 +183,7 @@ class MediaThread(object):
         instead of waiting the full duration of the timeout.
         '''
         if _debug:
-            print 'MediaThread.notify()'
+            print('MediaThread.notify()')
         with self.condition:
             self.condition.notify()
 
@@ -767,7 +767,7 @@ class SourceGroup(object):
         data.timestamp += self._timestamp_offset
         if eos:
             if _debug:
-                print 'adding on_eos event to audio data'
+                print('adding on_eos event to audio data')
             data.events.append(MediaEvent(0, 'on_eos'))
         return data
 
@@ -1061,7 +1061,7 @@ class Player(pyglet.event.EventDispatcher):
 
     def seek(self, time):
         if _debug:
-            print 'Player.seek(%r)' % time
+            print('Player.seek(%r)' % time)
 
         self._paused_time = time
         self.source.seek(time)
@@ -1220,7 +1220,7 @@ class Player(pyglet.event.EventDispatcher):
         :event:
         '''
         if _debug:
-            print 'Player.on_player_eos'
+            print('Player.on_player_eos')
 
     def on_source_group_eos(self):
         '''The current source group ran out of data.
@@ -1232,7 +1232,7 @@ class Player(pyglet.event.EventDispatcher):
         '''
         self.next_source()
         if _debug:
-            print 'Player.on_source_group_eos'
+            print('Player.on_source_group_eos')
 
     def on_eos(self):
         '''
@@ -1240,7 +1240,7 @@ class Player(pyglet.event.EventDispatcher):
         :event:
         '''
         if _debug:
-            print 'Player.on_eos'
+            print('Player.on_eos')
 
 Player.register_event_type('on_eos')
 Player.register_event_type('on_player_eos')
@@ -1401,12 +1401,12 @@ class AbstractSourceLoader(object):
 
 class AVbinSourceLoader(AbstractSourceLoader):
     def load(self, filename, file):
-        import avbin
+        from . import avbin
         return avbin.AVbinSource(filename, file)
 
 class RIFFSourceLoader(AbstractSourceLoader):
     def load(self, filename, file):
-        import riff
+        from . import riff
         return riff.WaveSource(filename, file)
     
 def load(filename, file=None, streaming=True):
@@ -1442,15 +1442,15 @@ def get_audio_driver():
     for driver_name in pyglet.options['audio']:
         try:
             if driver_name == 'pulse':
-                from drivers import pulse
+                from .drivers import pulse
                 _audio_driver = pulse.create_audio_driver()
                 break
             elif driver_name == 'openal':
-                from drivers import openal
+                from .drivers import openal
                 _audio_driver = openal.create_audio_driver()
                 break
             elif driver_name == 'directsound':
-                from drivers import directsound
+                from .drivers import directsound
                 _audio_driver = directsound.create_audio_driver()
                 break
             elif driver_name == 'silent':
@@ -1458,14 +1458,14 @@ def get_audio_driver():
                 break
         except Exception as exp:
             if _debug:
-                print 'Error importing driver %s:\n%s' % (driver_name, str(exp))
+                print('Error importing driver %s:\n%s' % (driver_name, str(exp)))
     return _audio_driver
 
 def get_silent_audio_driver():
     global _silent_audio_driver
     
     if not _silent_audio_driver:
-        from drivers import silent
+        from .drivers import silent
         _silent_audio_driver = silent.create_audio_driver()
 
     return _silent_audio_driver
@@ -1480,7 +1480,7 @@ def get_source_loader():
         return _source_loader
 
     try:
-        import avbin
+        from . import avbin
         _source_loader = AVbinSourceLoader()
     except ImportError:
         _source_loader = RIFFSourceLoader()
@@ -1489,7 +1489,7 @@ def get_source_loader():
 _source_loader = None
 
 try:
-    import avbin
+    from . import avbin
     have_avbin = True
 except ImportError:
     have_avbin = False

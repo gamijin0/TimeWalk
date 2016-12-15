@@ -170,7 +170,7 @@ class Win32Window(BaseWindow):
             white = _gdi32.GetStockObject(WHITE_BRUSH)
             black = _gdi32.GetStockObject(BLACK_BRUSH)
             self._window_class = WNDCLASS()
-            self._window_class.lpszClassName = u'GenericAppClass%d' % id(self)
+            self._window_class.lpszClassName = 'GenericAppClass%d' % id(self)
             self._window_class.lpfnWndProc = WNDPROC(
                 self._get_window_proc(self._event_handlers))
             self._window_class.style = CS_VREDRAW | CS_HREDRAW
@@ -184,7 +184,7 @@ class Win32Window(BaseWindow):
 
             self._view_window_class = WNDCLASS()
             self._view_window_class.lpszClassName = \
-                u'GenericViewClass%d' % id(self)
+                'GenericViewClass%d' % id(self)
             self._view_window_class.lpfnWndProc = WNDPROC(
                 self._get_window_proc(self._view_event_handlers))
             self._view_window_class.style = 0
@@ -200,7 +200,7 @@ class Win32Window(BaseWindow):
             self._hwnd = _user32.CreateWindowExW(
                 self._ex_ws_style,
                 self._window_class.lpszClassName,
-                u'',
+                '',
                 self._ws_style,
                 CW_USEDEFAULT,
                 CW_USEDEFAULT,
@@ -214,7 +214,7 @@ class Win32Window(BaseWindow):
             self._view_hwnd = _user32.CreateWindowExW(
                 0,
                 self._view_window_class.lpszClassName,
-                u'',
+                '',
                 WS_CHILD | WS_VISIBLE,
                 0, 0, 0, 0,
                 self._hwnd,
@@ -703,7 +703,7 @@ class Win32Window(BaseWindow):
 
     @Win32EventHandler(WM_CHAR)
     def _event_char(self, msg, wParam, lParam):
-        text = unichr(wParam)
+        text = chr(wParam)
         if unicodedata.category(text) != 'Cc' or text == '\r':
             self.dispatch_event('on_text', text)
         return 0

@@ -56,12 +56,12 @@ class SilentAudioPlayerPacketConsumer(AbstractAudioPlayer):
 
     def delete(self):
         if _debug:
-            print 'SilentAudioPlayer.delete'
+            print('SilentAudioPlayer.delete')
         self._thread.stop()
 
     def play(self):
         if _debug: 
-            print 'SilentAudioPlayer.play'
+            print('SilentAudioPlayer.play')
 
         with self._thread.condition:
             if not self._playing:
@@ -71,7 +71,7 @@ class SilentAudioPlayerPacketConsumer(AbstractAudioPlayer):
 
     def stop(self):
         if _debug:
-            print 'SilentAudioPlayer.stop'
+            print('SilentAudioPlayer.stop')
 
         with self._thread.condition:
             if self._playing:
@@ -84,7 +84,7 @@ class SilentAudioPlayerPacketConsumer(AbstractAudioPlayer):
 
     def clear(self):
         if _debug:
-            print 'SilentAudioPlayer.clear'
+            print('SilentAudioPlayer.clear')
 
         with self._thread.condition:
             del self._packets[:]
@@ -93,7 +93,7 @@ class SilentAudioPlayerPacketConsumer(AbstractAudioPlayer):
 
     def get_time(self):
         if _debug:
-            print 'SilentAudioPlayer.get_time()'
+            print('SilentAudioPlayer.get_time()')
 
         with self._thread.condition:
 
@@ -124,7 +124,7 @@ class SilentAudioPlayerPacketConsumer(AbstractAudioPlayer):
                     result = None
 
         if _debug:
-            print 'SilentAudioPlayer.get_time() -> ', result
+            print('SilentAudioPlayer.get_time() -> ', result)
         return result
 
     # Worker func that consumes audio data and dispatches events
@@ -142,7 +142,7 @@ class SilentAudioPlayerPacketConsumer(AbstractAudioPlayer):
                 # Use up "buffered" audio based on amount of time passed.
                 timestamp = self.get_time()
                 if _debug:
-                    print 'timestamp: %r' % timestamp
+                    print('timestamp: %r' % timestamp)
 
                 # Dispatch events
                 while events and timestamp is not None:
@@ -157,7 +157,7 @@ class SilentAudioPlayerPacketConsumer(AbstractAudioPlayer):
                 secs = self._buffer_time - self._packets_duration
                 bytes = secs * self.source_group.audio_format.bytes_per_second
                 if _debug:
-                    print 'Trying to buffer %d bytes (%r secs)' % (bytes, secs)
+                    print('Trying to buffer %d bytes (%r secs)' % (bytes, secs))
 
                 while bytes > self._min_update_bytes and not eos:
                     # Pull audio data from source
@@ -187,7 +187,7 @@ class SilentAudioPlayerPacketConsumer(AbstractAudioPlayer):
                     sleep_time = min(sleep_time, events[0].timestamp - timestamp)
 
                 if _debug:
-                    print 'SilentAudioPlayer(Worker).sleep', sleep_time
+                    print('SilentAudioPlayer(Worker).sleep', sleep_time)
                 thread.sleep(sleep_time)
 
 class SilentTimeAudioPlayer(AbstractAudioPlayer):

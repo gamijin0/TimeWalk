@@ -128,7 +128,7 @@ use of the data in this arbitrary format).
 
 '''
 
-from __future__ import division
+
 
 __docformat__ = 'restructuredtext'
 __version__ = '$Id$'
@@ -192,7 +192,7 @@ def load(filename, file=None, decoder=None):
                 try:
                     image = decoder.decode(file, filename)
                     return image
-                except codecs.ImageDecodeException, e:
+                except codecs.ImageDecodeException as e:
                     if (not first_exception or
                         first_exception.exception_priority < e.exception_priority):
                         first_exception = e
@@ -461,7 +461,7 @@ class AbstractImage(object):
                 try:
                     encoder.encode(self, file, filename)
                     return
-                except codecs.ImageEncodeException, e:
+                except codecs.ImageEncodeException as e:
                     first_exception = first_exception or e
                     file.seek(0)
 
@@ -1953,7 +1953,7 @@ class BufferManager(object):
 
         stencil_bits = GLint()
         glGetIntegerv(GL_STENCIL_BITS, byref(stencil_bits))
-        self.free_stencil_bits = range(stencil_bits.value)
+        self.free_stencil_bits = list(range(stencil_bits.value))
 
         self.refs = []
 
@@ -2438,7 +2438,7 @@ def load_animation(filename, file=None, decoder=None):
             try:
                 image = decoder.decode_animation(file, filename)
                 return image
-            except codecs.ImageDecodeException, e:
+            except codecs.ImageDecodeException as e:
                 first_exception = first_exception or e
                 file.seek(0)
 

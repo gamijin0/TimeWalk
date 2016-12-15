@@ -259,7 +259,7 @@ class GdkPixBufAnimationIterator(object):
     def __iter__(self):
         return self
 
-    def next(self):
+    def __next__(self):
         self._advance()
         frame = self.get_frame()
         if frame is None:
