@@ -28,6 +28,32 @@ class Bullet(Sprite):
         fly_action = MoveBy([0,self.speed],duration=0.1)
         self.do(Repeat(fly_action))
 
+class EnemySprite(Sprite):
+    #敌人
+    def __init__(self):
+        self.ship_image = pyglet.image.load(os.path.normpath("../static/rocket-ship-2.png"))
+        super(EnemySprite, self).__init__(self.ship_image)
+        self.scale=0.2 #大小
+        self.do(Rotate(180,duration=0))
+
+        from random import randint
+        self.position=randint(200,1800),1000 #初始位置
+        self.shake_action = ScaleBy(1.1, duration=0.7) + Reverse(ScaleBy(1.1, duration=0.5))  # 抖动特效
+        self.do(Repeat(self.shake_action))  #开启抖动
+
+
+
+    def fly(self,target,speed=40):
+        import math
+        dx = target.x-self.x
+        dy = target.y-self.y
+        hy=math.hypot(dx, dy)
+
+        fly_action = MoveBy([dx*1.0*speed/hy,dy*1.0*speed/hy],duration=0.1)
+
+        self.do(Repeat(fly_action))
+
+
 
 
 
@@ -61,7 +87,12 @@ class ShipSprite(Sprite):
 
 
 class PlayerLayer(Layer):
+
     is_event_handler = True
+    bullet_set = list()
+    enemy_set = list()
+    time = 0
+
 
     def __init__(self):
 
@@ -69,10 +100,54 @@ class PlayerLayer(Layer):
         self.shipSprite = ShipSprite()
         self.add(self.shipSprite)
 
+        self.schedule(self.check_hit)
+
+
+
+
 
     def on_mouse_motion(self,x,y,dx,dy):
         move_action = MoveTo((x,y),duration=1)
         self.shipSprite.do(move_action)
 
     def on_mouse_press(self, x, y, buttons, modifiers):
-        self.add(self.shipSprite.shoot())
+        one_bullet = self.shipSprite.shoot()
+        self.add(one_bullet)
+        self.bullet_set.append(one_bullet)
+
+    def generateEnemy(self):
+        one_enemy = EnemySprite()
+        self.add(one_enemy)
+        self.enemy_set.append(one_enemy)
+        one_enemy.fly(self.shipSprite)
+
+    def deleteEnemy(self,en):
+        self.remove(en)
+        self.enemy_set.remove(en)
+        en.delete()
+
+    def deleteBullet(self,bu):
+        self.remove(bu)
+        self.bullet_set.remove(bu)
+        bu.delete()
+
+    #用于检测撞击
+    def check_hit(self,*args,**kwargs):
+        self.time +=1
+        if(self.time>20):
+            self.generateEnemy()
+            self.time=0
+
+        for b in self.bullet_set:
+            if(b.y>1700):
+                self.deleteBullet(b)
+
+            for en in self.enemy_set:
+                if(((b.x-en.x)**2+(b.y-en.y)**2)<400):
+                    #击中
+                    self.deleteBullet(b)
+                    self.deleteEnemy(en)
+
+        for en in self.enemy_set:
+            if(en.y<-100):
+                self.deleteEnemy(en)
