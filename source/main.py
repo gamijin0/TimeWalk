@@ -8,5 +8,4 @@ if(__name__=="__main__"):
 
 
     cocos.director.director.init(fullscreen=False)
-    cocos.director.director.run(cocos.scene.Scene(TimeWalk(),MouseDisplay()))
-
+    game = TimeWalk()
