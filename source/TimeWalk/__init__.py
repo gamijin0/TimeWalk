@@ -1,11 +1,11 @@
-import cocos
+from cocos.scene import Scene
+from cocos.director import director
+from .layer.startMune import StartMenuLayer
+from .layer.palyer import PlayerLayer
 import pyglet
 from .mouse import MouseDisplay
-from ..config import STATIC_RESOURCES_PATH
-from .scene.startMenu import StartMenu
 
 class TimeWalk():
     def __init__(self):
-        self.start_menu = StartMenu()
-        cocos.director.director.run(self.start_menu.createStartMenuScene())
-
+        # director.run(scene=Scene(StartMenuLayer()))
+        director.run(scene=Scene(PlayerLayer()))

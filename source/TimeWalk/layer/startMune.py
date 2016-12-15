@@ -14,7 +14,7 @@ class StartMenuLayer(Layer):
             font_size=32,
             anchor_x='center', anchor_y='center'
         )
-        start_game_lable.position = 420,140
+        start_game_lable.position = 420,340
 
         exit_lable = Label(
             "Exit",
@@ -22,7 +22,7 @@ class StartMenuLayer(Layer):
             font_size=32,
             anchor_x='center', anchor_y='center'
         )
-        exit_lable.position = 420,440
+        exit_lable.position = 420,240
 
         self.add(start_game_lable)
         self.add(exit_lable)
