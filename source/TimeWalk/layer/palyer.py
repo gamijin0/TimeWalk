@@ -30,14 +30,14 @@ class Bullet(Sprite):
 
 class EnemySprite(Sprite):
     #敌人
-    def __init__(self):
+    def __init__(self,x,y):
         self.ship_image = pyglet.image.load(os.path.normpath("../static/rocket-ship-2.png"))
         super(EnemySprite, self).__init__(self.ship_image)
         self.scale=0.2 #大小
         self.do(Rotate(180,duration=0))
 
         from random import randint
-        self.position=randint(200,1800),1000 #初始位置
+        self.position=x,y #初始位置
         self.shake_action = ScaleBy(1.1, duration=0.7) + Reverse(ScaleBy(1.1, duration=0.5))  # 抖动特效
         self.do(Repeat(self.shake_action))  #开启抖动
 
@@ -104,8 +104,6 @@ class PlayerLayer(Layer):
 
 
 
-
-
     def on_mouse_motion(self,x,y,dx,dy):
         move_action = MoveTo((x,y),duration=1)
         self.shipSprite.do(move_action)
@@ -116,7 +114,8 @@ class PlayerLayer(Layer):
         self.bullet_set.append(one_bullet)
 
     def generateEnemy(self):
-        one_enemy = EnemySprite()
+        from random import randint
+        one_enemy = EnemySprite(randint(200,1200),1300)
         self.add(one_enemy)
         self.enemy_set.append(one_enemy)
         one_enemy.fly(self.shipSprite)
