@@ -41,7 +41,6 @@ class EnemySprite(Sprite):
         self.scale=0.2 #大小
         self.do(Rotate(180,duration=0))
 
-        from random import randint
         self.position=x,y #初始位置
         self.shake_action = ScaleBy(1.1, duration=0.7) + Reverse(ScaleBy(1.1, duration=0.5))  # 抖动特效
         self.do(Repeat(self.shake_action))  #开启抖动
@@ -89,6 +88,25 @@ class ShipSprite(Sprite):
         bullet  = Bullet(self.x,self.y+50,speed=50+randint(0,30))
         return bullet
 
+class BloodLine(Sprite):
+    def __init__(self):
+        self.bloodPercent = 100
+        self.bloodLine_image = pyglet.image.load(os.path.normpath("../static/bloodline.png"))
+        super(BloodLine,self).__init__(self.bloodLine_image)
+        self.anchor_x = 0
+
+        self.position = 1400,50
+        self.scale_x = 1.8
+        self.scale_y = 0.8
+
+    def lossBlood(self,d_bloodPercent):
+        self.bloodPercent-=d_bloodPercent
+        if(self.bloodPercent>0 and d_bloodPercent>0):
+            # loss_blood_action = ScaleBy(float((self.bloodPercent-d_bloodPercent))/self.bloodPercent,0.1)
+            self.scale_x *= float((self.bloodPercent-d_bloodPercent)/self.bloodPercent)
+            # self.do(loss_blood_action)
+
+
 
 
 class PlayerLayer(Layer):
@@ -104,6 +122,9 @@ class PlayerLayer(Layer):
         super(PlayerLayer,self).__init__()
         self.shipSprite = ShipSprite()
         self.add(self.shipSprite)
+
+        self.bloodline = BloodLine()
+        self.add(self.bloodline)
 
         self.schedule(self.check_hit)
 
@@ -153,5 +174,6 @@ class PlayerLayer(Layer):
                     self.deleteEnemy(en)
 
         for en in self.enemy_set:
-            if(en.y<-100):
+            if(en.y<-10):
+                self.bloodline.lossBlood(10)
                 self.deleteEnemy(en)
