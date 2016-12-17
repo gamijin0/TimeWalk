@@ -1,3 +1,4 @@
+import cocos
 from cocos.layer import Layer
 from cocos.sprite import *
 from cocos.director import *
@@ -8,18 +9,22 @@ import cocos.euclid as eu
 import os
 import pyglet
 
-class Bullet(Sprite):
-    #飞船发射的子弹
-    def __init__(self,start_x,start_y,speed = 50):
 
-        self.bullet_image = pyglet.image.load(os.path.normpath("../static/jupiter.png"))
+
+# 飞船发射的子弹
+class Bullet(Sprite):
+    def __init__(self,start_x,start_y,speed = 50,team = 1):
+        self.team = team #队，1:友方 2:敌方
+
+        if(self.team==1):
+            self.bullet_image = pyglet.image.load(os.path.normpath("../static/jupiter.png"))
+        if(self.team==2):
+            self.bullet_image = pyglet.image.load(os.path.normpath("../static/sun.png"))
         super(Bullet, self).__init__(self.bullet_image)
 
         self.speed = speed
         self.position = start_x,start_y
         self.scale=0.03
-
-        self.cshape = cm.CircleShape(eu.Vector2(self.x,self.y),5) #子弹碰撞半径
 
         self.fly()
 
@@ -28,6 +33,12 @@ class Bullet(Sprite):
         fly_action = MoveBy([0,self.speed],duration=0.1)
         self.do(Repeat(fly_action))
 
+    #判断是否击中一个目标
+    def hit(self,taraget,length=400):
+        return (((self.x-taraget.x)**2+(self.y-taraget.y)**2)<length) and (self.team!=taraget.team)
+
+
+#敌人
 class EnemySprite(Sprite):
     #敌人
     def __init__(self,x,y):
@@ -36,6 +47,7 @@ class EnemySprite(Sprite):
         ]
         from random import randint
 
+        self.team = 2
         self.ship_image = pyglet.image.load(os.path.normpath("../static/%s.png" % (enemy_file_list[randint(0,len(enemy_file_list)-1)]) ))
         super(EnemySprite, self).__init__(self.ship_image)
         self.scale=0.2 #大小
@@ -44,8 +56,12 @@ class EnemySprite(Sprite):
         self.position=x,y #初始位置
         self.shake_action = ScaleBy(1.1, duration=0.7) + Reverse(ScaleBy(1.1, duration=0.5))  # 抖动特效
         self.do(Repeat(self.shake_action))  #开启抖动
+        self.actionValue = 0
 
-
+    def shoot(self):
+        from random import randint
+        bullet  = Bullet(self.x,self.y-50,speed=-30-randint(0,20),team=2)
+        return bullet
 
     def fly(self,target,speed=60):
         import math
@@ -58,14 +74,11 @@ class EnemySprite(Sprite):
         self.do(Repeat(fly_action))
 
 
-
-
-
-
+# 玩家控制的飞船
 class ShipSprite(Sprite):
-    #玩家控制的飞船
     def __init__(self):
 
+        self.team = 1
         self.ship_image = pyglet.image.load(os.path.normpath("../static/space-shuttle-1.png"))
 
         super(ShipSprite,self).__init__(self.ship_image)
@@ -85,9 +98,11 @@ class ShipSprite(Sprite):
 
     def shoot(self):
         from random import randint
-        bullet  = Bullet(self.x,self.y+50,speed=50+randint(0,30))
+        bullet  = Bullet(self.x,self.y+50,speed=50+randint(0,30),team=1)
         return bullet
 
+
+#血条
 class BloodLine(Sprite):
     def __init__(self):
         self.bloodPercent = 100
@@ -107,8 +122,7 @@ class BloodLine(Sprite):
             # self.do(loss_blood_action)
 
 
-
-
+#游戏控制
 class PlayerLayer(Layer):
 
     is_event_handler = True
@@ -126,19 +140,32 @@ class PlayerLayer(Layer):
         self.bloodline = BloodLine()
         self.add(self.bloodline)
 
+
         self.schedule(self.check_hit)
 
+        #分数显示
+        self.score = 0
+        self.scoreLabel = cocos.text.Label(
+            'Score: \t0 ',
+            font_name='Times New Roman',
+            font_size=32,
+            anchor_x='center', anchor_y='center'
+        )
+        self.scoreLabel.position = 1700,100
+        self.add(self.scoreLabel)
 
-
+    #鼠标移动时触发
     def on_mouse_motion(self,x,y,dx,dy):
         move_action = MoveTo((x,y),duration=1)
         self.shipSprite.do(move_action)
 
+    #鼠标按下时触发
     def on_mouse_press(self, x, y, buttons, modifiers):
         one_bullet = self.shipSprite.shoot()
         self.add(one_bullet)
         self.bullet_set.append(one_bullet)
 
+    #产生敌人
     def generateEnemy(self):
         from random import randint
         one_enemy = EnemySprite(randint(200,1200),1300)
@@ -146,34 +173,52 @@ class PlayerLayer(Layer):
         self.enemy_set.append(one_enemy)
         one_enemy.fly(self.shipSprite)
 
+    #删除敌人
     def deleteEnemy(self,en):
         self.remove(en)
         self.enemy_set.remove(en)
         en.delete()
-
+    #删除子弹
     def deleteBullet(self,bu):
         self.remove(bu)
         self.bullet_set.remove(bu)
         bu.delete()
 
+    def Scored(self,value):
+        if(value>0):
+            self.score+=value
+            self.scoreLabel.element.text = "Score: \t%d" % (self.score)
+
     #用于检测撞击
     def check_hit(self,*args,**kwargs):
         self.time +=1
-        if(self.time>10):
+        if(self.time%20==0):
             self.generateEnemy()
-            self.time=0
 
         for b in self.bullet_set:
-            if(b.y>1700):
+            if(b.y>1700 or b.y <0):
                 self.deleteBullet(b)
 
             for en in self.enemy_set:
-                if(((b.x-en.x)**2+(b.y-en.y)**2)<400):
-                    #击中
+
+                if(b.hit(en)):
                     self.deleteBullet(b)
+                    #击中
+                    self.Scored(20)
                     self.deleteEnemy(en)
 
-        for en in self.enemy_set:
-            if(en.y<-10):
+            if(b.hit(self.shipSprite,length=800)):
+                self.shipSprite.do(Blink(1,0.1))
+                self.deleteBullet(b)
                 self.bloodline.lossBlood(10)
+
+
+        for en in self.enemy_set:
+            en.actionValue+=1
+            if(en.actionValue%35==0):
+                one_bullet = en.shoot()
+                self.add(one_bullet)
+                self.bullet_set.append(one_bullet)
+
+            if(en.y<-10):
                 self.deleteEnemy(en)
