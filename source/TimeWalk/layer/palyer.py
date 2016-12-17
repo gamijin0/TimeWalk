@@ -13,7 +13,7 @@ import pyglet
 
 # 飞船发射的子弹
 class Bullet(Sprite):
-    def __init__(self,start_x,start_y,speed = 50,team = 1):
+    def __init__(self,start_x,start_y,speed=50,team = 1):
         self.team = team #队，1:友方 2:敌方
 
         if(self.team==1):
@@ -26,10 +26,11 @@ class Bullet(Sprite):
         self.position = start_x,start_y
         self.scale=0.03
 
-        self.fly()
+        self.fly(self.speed)
 
 
-    def fly(self):
+    def fly(self,speed):
+        self.speed = speed
         fly_action = MoveBy([0,self.speed],duration=0.1)
         self.do(Repeat(fly_action))
 
@@ -48,30 +49,43 @@ class EnemySprite(Sprite):
         from random import randint
 
         self.team = 2
+        self.speed = 60
         self.ship_image = pyglet.image.load(os.path.normpath("../static/%s.png" % (enemy_file_list[randint(0,len(enemy_file_list)-1)]) ))
         super(EnemySprite, self).__init__(self.ship_image)
         self.scale=0.2 #大小
         self.do(Rotate(180,duration=0))
 
         self.position=x,y #初始位置
+        self.birth_position = self.position #记录下出生位置
         self.shake_action = ScaleBy(1.1, duration=0.7) + Reverse(ScaleBy(1.1, duration=0.5))  # 抖动特效
         self.do(Repeat(self.shake_action))  #开启抖动
         self.actionValue = 0
 
-    def shoot(self):
+    def shoot(self,speed=0):
         from random import randint
-        bullet  = Bullet(self.x,self.y-50,speed=-30-randint(0,20),team=2)
+        if(speed==0):
+            bullet = Bullet(self.x, self.y - 50, speed=-100 - randint(0, 20), team=2)
+        else:
+            bullet = Bullet(self.x, self.y - 50, speed=speed, team=2)
         return bullet
 
     def fly(self,target,speed=60):
+
+        self.target = target
+        self.speed = speed
         import math
-        dx = target.x-self.x
-        dy = target.y-self.y
+        if (isinstance(target, Sprite)):
+            dx = self.target.x-self.x
+            dy = self.target.y-self.y
+        else:
+            dx = self.target[0] - self.birth_position[0]
+            dy = self.target[1] - self.birth_position[1]
+
         hy=math.hypot(dx, dy)
 
-        fly_action = MoveBy([dx*1.0*speed/hy,dy*1.0*speed/hy],duration=0.1)
+        self.fly_action = MoveBy([dx*1.0*self.speed/hy,dy*1.0*self.speed/hy],duration=0.1)
 
-        self.do(Repeat(fly_action))
+        self.do(Repeat(self.fly_action))
 
 
 # 玩家控制的飞船
@@ -140,8 +154,9 @@ class PlayerLayer(Layer):
         self.bloodline = BloodLine()
         self.add(self.bloodline)
 
+        self.time_speed = 10 #时间流速
 
-        self.schedule(self.check_hit)
+        self.schedule(self.check_hit) #每一帧都检测
 
         #分数显示
         self.score = 0
@@ -161,9 +176,19 @@ class PlayerLayer(Layer):
 
     #鼠标按下时触发
     def on_mouse_press(self, x, y, buttons, modifiers):
-        one_bullet = self.shipSprite.shoot()
-        self.add(one_bullet)
-        self.bullet_set.append(one_bullet)
+        if(buttons==1):
+            #左键
+            one_bullet = self.shipSprite.shoot()
+            self.add(one_bullet)
+            self.bullet_set.append(one_bullet)
+        if(buttons==4 ):
+            #右键
+            self.time_speed = 1.0/self.time_speed
+
+            for en in self.enemy_set:
+                en.fly(en.target,en.speed*self.time_speed)
+            for bu in self.bullet_set:
+                bu.fly(bu.speed*self.time_speed)
 
     #产生敌人
     def generateEnemy(self):
@@ -171,7 +196,7 @@ class PlayerLayer(Layer):
         one_enemy = EnemySprite(randint(200,1200),1300)
         self.add(one_enemy)
         self.enemy_set.append(one_enemy)
-        one_enemy.fly(self.shipSprite)
+        one_enemy.fly(self.shipSprite.position,self.enemy_set[0].speed)
 
     #删除敌人
     def deleteEnemy(self,en):
@@ -184,6 +209,7 @@ class PlayerLayer(Layer):
         self.bullet_set.remove(bu)
         bu.delete()
 
+    #得分
     def Scored(self,value):
         if(value>0):
             self.score+=value
@@ -192,21 +218,23 @@ class PlayerLayer(Layer):
     #用于检测撞击
     def check_hit(self,*args,**kwargs):
         self.time +=1
-        if(self.time%20==0):
+        #定时产生敌人
+        if(self.time%(20)==0):
             self.generateEnemy()
 
         for b in self.bullet_set:
+            #删除无效子弹
             if(b.y>1700 or b.y <0):
                 self.deleteBullet(b)
 
             for en in self.enemy_set:
-
+            #检查是否击中敌人
                 if(b.hit(en)):
                     self.deleteBullet(b)
-                    #击中
                     self.Scored(20)
                     self.deleteEnemy(en)
 
+            #检查自己是否被击中
             if(b.hit(self.shipSprite,length=800)):
                 self.shipSprite.do(Blink(1,0.1))
                 self.deleteBullet(b)
@@ -215,10 +243,13 @@ class PlayerLayer(Layer):
 
         for en in self.enemy_set:
             en.actionValue+=1
-            if(en.actionValue%35==0):
+            if(en.actionValue%(25)==0):
+                #敌人间歇性发射子弹
                 one_bullet = en.shoot()
+                if(self.time_speed<1):
+                    one_bullet.fly(one_bullet.speed*self.time_speed)
                 self.add(one_bullet)
                 self.bullet_set.append(one_bullet)
-
+            #删除无效敌人
             if(en.y<-10):
                 self.deleteEnemy(en)
