@@ -56,9 +56,7 @@ class BackGround(Layer):
         for item in self.mapItems:
             if(item.distance != 0 ):
                 if(step!=0):
-                    item.do(MoveTo((item.x,item.y-step),0.1))
-                if((abs(dx)+abs(dy))!=0):
-                    item.do(MoveTo((self.x-dx*0.5/item.distance,self.y-dy/0.5*item.distance),1))
+                    item.do(MoveTo((item.x,item.y-step-0.2*item.distance),0.1))
 
     def addMapItems(self,num,position=None,distance = None):
         #向背景中添加物体
