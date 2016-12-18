@@ -19,7 +19,7 @@ class Bullet(Sprite):
         if(self.team==1):
             self.bullet_image = pyglet.image.load(os.path.normpath("../static/jupiter.png"))
         if(self.team==2):
-            self.bullet_image = pyglet.image.load(os.path.normpath("../static/sun.png"))
+            self.bullet_image = pyglet.image.load(os.path.normpath("../static/mars.png"))
         super(Bullet, self).__init__(self.bullet_image)
 
         self.speed = speed
@@ -52,7 +52,7 @@ class EnemySprite(Sprite):
         self.speed = 60
         self.ship_image = pyglet.image.load(os.path.normpath("../static/%s.png" % (enemy_file_list[randint(0,len(enemy_file_list)-1)]) ))
         super(EnemySprite, self).__init__(self.ship_image)
-        self.scale=0.2 #大小
+        self.scale=0.14 #大小
         self.do(Rotate(180,duration=0))
 
         self.position=x,y #初始位置
@@ -124,7 +124,8 @@ class BloodLine(Sprite):
         super(BloodLine,self).__init__(self.bloodLine_image)
         self.anchor_x = 0
 
-        self.position = 1400,50
+        self.position = int(director.window.width*0.8),int(director.window.height*0.05)
+
         self.scale_x = 1.8
         self.scale_y = 0.8
 
@@ -166,7 +167,9 @@ class PlayerLayer(Layer):
             font_size=32,
             anchor_x='center', anchor_y='center'
         )
-        self.scoreLabel.position = 1700,100
+        self.scoreLabel.position = int(director.window.width*0.9),int(director.window.height*0.1)
+
+
         self.add(self.scoreLabel)
 
     #鼠标移动时触发
@@ -196,7 +199,10 @@ class PlayerLayer(Layer):
         one_enemy = EnemySprite(randint(200,1200),1300)
         self.add(one_enemy)
         self.enemy_set.append(one_enemy)
-        one_enemy.fly(self.shipSprite.position,self.enemy_set[0].speed)
+        one_enemy.fly(
+            (randint(int(director.window.width*0.2),int(director.window.width*0.7)),0),
+            self.enemy_set[0].speed
+        )
 
     #删除敌人
     def deleteEnemy(self,en):
@@ -243,7 +249,7 @@ class PlayerLayer(Layer):
 
         for en in self.enemy_set:
             en.actionValue+=1
-            if(en.actionValue%(25)==0):
+            if(en.actionValue%(100)==0):
                 #敌人间歇性发射子弹
                 one_bullet = en.shoot()
                 if(self.time_speed<1):
