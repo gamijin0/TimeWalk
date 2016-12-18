@@ -110,9 +110,12 @@ class ShipSprite(Sprite):
         self.do(Repeat(self.explode_action))
         self.delete()
 
-    def shoot(self):
+    def shoot(self,speed = 0):
         from random import randint
-        bullet  = Bullet(self.x,self.y+50,speed=50+randint(0,30),team=1)
+        if(speed==0):
+            bullet  = Bullet(self.x,self.y+50,speed=50+randint(0,30),team=1)
+        else:
+            bullet = Bullet(self.x, self.y + 50, speed=speed, team=1)
         return bullet
 
 
@@ -181,7 +184,10 @@ class PlayerLayer(Layer):
     def on_mouse_press(self, x, y, buttons, modifiers):
         if(buttons==1):
             #左键
-            one_bullet = self.shipSprite.shoot()
+            if(self.time_speed>1):
+                one_bullet = self.shipSprite.shoot()
+            else:
+                one_bullet = self.shipSprite.shoot(speed=50*self.time_speed)
             self.add(one_bullet)
             self.bullet_set.append(one_bullet)
         if(buttons==4 ):
