@@ -225,7 +225,11 @@ class PlayerLayer(Layer):
     def check_hit(self,*args,**kwargs):
         self.time +=1
         #定时产生敌人
-        if(self.time%(20)==0):
+        if (self.time_speed < 1):
+            enemy_generate_frequence = int(10/ self.time_speed)
+        else:
+            enemy_generate_frequence = 20
+        if(self.time%(enemy_generate_frequence)==0):
             self.generateEnemy()
 
         for b in self.bullet_set:
@@ -249,7 +253,13 @@ class PlayerLayer(Layer):
 
         for en in self.enemy_set:
             en.actionValue+=1
-            if(en.actionValue%(100)==0):
+
+            if(self.time_speed<1):
+                enemy_shoot_frequence =  int(50.0/self.time_speed)
+            else:
+                enemy_shoot_frequence = 100
+
+            if(en.actionValue%(enemy_shoot_frequence)==0):
                 #敌人间歇性发射子弹
                 one_bullet = en.shoot()
                 if(self.time_speed<1):
