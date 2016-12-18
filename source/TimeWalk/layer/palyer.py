@@ -4,6 +4,7 @@ from cocos.sprite import *
 from cocos.director import *
 import time
 from cocos.actions import *
+from cocos.particle_systems import *
 import cocos.collision_model as cm
 import cocos.euclid as eu
 import os
@@ -64,7 +65,7 @@ class EnemySprite(Sprite):
     def shoot(self,speed=0):
         from random import randint
         if(speed==0):
-            bullet = Bullet(self.x, self.y - 50, speed=-100 - randint(0, 20), team=2)
+            bullet = Bullet(self.x, self.y - 50, speed=-60 - randint(0, 20), team=2)
         else:
             bullet = Bullet(self.x, self.y - 50, speed=speed, team=2)
         return bullet
@@ -96,10 +97,14 @@ class ShipSprite(Sprite):
         self.ship_image = pyglet.image.load(os.path.normpath("../static/space-shuttle-1.png"))
 
         super(ShipSprite,self).__init__(self.ship_image)
+        self.tailFire = Fire()
+        self.tailFire.size = 40
 
         self.scale=0.2 #大小
         self.position=320,240 #初始位置
-
+        self.tailFire.position=0,-300
+        self.tailFire.angle= 270
+        self.add(self.tailFire)
         self.shake_action = ScaleBy(1.2, duration=0.7) + Reverse(ScaleBy(1.2, duration=0.5))  # 抖动特效
         self.explode_action = ScaleBy(1.1, duration=0.4) + Reverse(ScaleBy(1.2, duration=0.3)) #爆炸特效
 
@@ -127,8 +132,8 @@ class BloodLine(Sprite):
         super(BloodLine,self).__init__(self.bloodLine_image)
         self.anchor_x = 0
 
-        self.position = int(director.window.width*0.8),int(director.window.height*0.05)
-
+        self.position = int(director.window.width*0.6),int(director.window.height*0.05)
+        self.anchor_x = 0
         self.scale_x = 1.8
         self.scale_y = 0.8
 
@@ -152,6 +157,7 @@ class PlayerLayer(Layer):
     def __init__(self):
 
         super(PlayerLayer,self).__init__()
+
         self.shipSprite = ShipSprite()
         self.add(self.shipSprite)
 
@@ -177,7 +183,8 @@ class PlayerLayer(Layer):
 
     #鼠标移动时触发
     def on_mouse_motion(self,x,y,dx,dy):
-        move_action = MoveTo((x,y),duration=1)
+        move_action = MoveTo((x,y),duration=1+0.5/(self.time_speed))
+
         self.shipSprite.do(move_action)
 
     #鼠标按下时触发
@@ -254,16 +261,17 @@ class PlayerLayer(Layer):
             if(b.hit(self.shipSprite,length=800)):
                 self.shipSprite.do(Blink(1,0.1))
                 self.deleteBullet(b)
-                self.bloodline.lossBlood(10)
+                self.bloodline.lossBlood(20)
 
 
         for en in self.enemy_set:
             en.actionValue+=1
 
+            enemy_shoot_frequence = 50.0
             if(self.time_speed<1):
-                enemy_shoot_frequence =  int(50.0/self.time_speed)
+                enemy_shoot_frequence =  int(enemy_shoot_frequence/self.time_speed)
             else:
-                enemy_shoot_frequence = 100
+                pass
 
             if(en.actionValue%(enemy_shoot_frequence)==0):
                 #敌人间歇性发射子弹
