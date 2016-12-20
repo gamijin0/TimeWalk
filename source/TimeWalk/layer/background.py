@@ -34,6 +34,7 @@ class BackGround(Layer):
 
         self.mapItems = list()
         self.schedule(self.check)
+        self.time_speed = 10 #时间流速
 
         for i in range(randint(5,8)):
             self.addMapItems(
@@ -77,6 +78,16 @@ class BackGround(Layer):
 
     def on_mouse_motion(self,x,y,dx,dy):
         self.rollMap(step=0,dx=dx,dy=dy)
+
+    #鼠标按下时触发
+    def on_mouse_press(self, x, y, buttons, modifiers):
+        if(buttons==4 ):
+            if (self.time_speed > 1):
+                self.do(Waves(waves=1, hsin=True, vsin=True,
+                              grid=(36, 20), duration=1))
+            else:
+                self.do(Waves(waves=1, hsin=True, vsin=True, grid=(36, 20), duration=1) + StopGrid())
+            self.time_speed = 1.0 / self.time_speed
 
     def check(self,*args,**kwargs):
         self.time+=1

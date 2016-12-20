@@ -201,9 +201,9 @@ class PlayerLayer(Layer):
             #右键
             if(self.time_speed>1):
                 self.do(Waves( waves=1, hsin=True, vsin=True,
-                          grid=(16,10), duration=1) )
+                          grid=(36,20), duration=1) )
             else:
-                self.do(Waves( waves=1, hsin=True, vsin=True,grid=(16,10), duration=1)+StopGrid())
+                self.do(Waves( waves=1, hsin=True, vsin=True,grid=(36,20), duration=1)+StopGrid())
             self.time_speed = 1.0/self.time_speed
 
             for en in self.enemy_set:
