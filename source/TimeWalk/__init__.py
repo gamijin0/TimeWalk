@@ -4,6 +4,7 @@ from cocos.collision_model import CollisionManager
 from .layer.startMune import StartMenuLayer
 from .layer.palyer import PlayerLayer
 import pyglet
+import cocos
 from  .layer.background import BackGround
 from .mouse import MouseDisplay
 
@@ -13,6 +14,10 @@ class TimeWalk():
     def __init__(self):
         self.collisionManager = collisionManager
 
-        # director.run(scene=Scene(StartMenuLayer()))
-        director.run(scene=Scene(BackGround(),PlayerLayer()))
+        backGroungLayer = BackGround()
+        director.run(scene=Scene(backGroungLayer,StartMenuLayer()))
+
+        from source.TimeWalk.mouse import MouseDisplay
+        cocos.director.director.window.set_mouse_visible(False)
+        director.run(scene=Scene(backGroungLayer,PlayerLayer()))
 

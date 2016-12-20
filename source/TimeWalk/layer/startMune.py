@@ -1,28 +1,27 @@
 from cocos.layer import Layer
 from cocos.text import  Label
+from cocos.menu import *
+import pyglet
+from cocos.director import director
 
-class StartMenuLayer(Layer):
 
-    is_event_handler = True
+class StartMenuLayer(Menu):
+    def __init__( self ):
+        super( StartMenuLayer, self ).__init__("Timer Walker" )
 
-    def __init__(self):
-        super(StartMenuLayer,self).__init__()
+        self.menu_valign = CENTER
+        self.menu_halign = CENTER
 
-        start_game_lable = Label(
-            'Start Game',
-            font_name='Times New Roman',
-            font_size=32,
-            anchor_x='center', anchor_y='center'
-        )
-        start_game_lable.position = 420,340
 
-        exit_lable = Label(
-            "Exit",
-            font_name='Times New Roman',
-            font_size=32,
-            anchor_x='center', anchor_y='center'
-        )
-        exit_lable.position = 420,240
 
-        self.add(start_game_lable)
-        self.add(exit_lable)
+        # then add the items
+        items = [
+            (MenuItem('Start Fighting', self.on_quit)),
+            ( MenuItem('Exit ', exit) ),
+        ]
+
+        self.create_menu( items, selected_effect=shake()+zoom_in(),
+                          unselected_effect=zoom_out())
+
+    def on_quit( self ):
+        pyglet.app.exit()
