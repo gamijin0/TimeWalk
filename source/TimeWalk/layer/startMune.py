@@ -2,7 +2,11 @@ from cocos.layer import Layer
 from cocos.text import  Label
 from cocos.menu import *
 import pyglet
+from cocos.actions import *
 from cocos.director import director
+from cocos.scene import *
+from .palyer import PlayerLayer
+from .background import BackGround
 
 
 class StartMenuLayer(Menu):
@@ -16,12 +20,17 @@ class StartMenuLayer(Menu):
 
         # then add the items
         items = [
-            (MenuItem('Start Fighting', self.on_quit)),
+            (MenuItem('Start Fighting', self.go_next_scene)),
             ( MenuItem('Exit ', exit) ),
         ]
 
         self.create_menu( items, selected_effect=shake()+zoom_in(),
                           unselected_effect=zoom_out())
 
-    def on_quit( self ):
-        pyglet.app.exit()
+
+    def on_quit(self):
+        director.replace(Scene(BackGround(),PlayerLayer(next_scene=Scene(BackGround(),StartMenuLayer()))))
+
+    def go_next_scene(self):
+        self.do(FadeOutTRTiles(grid=(36,22), duration=1)+CallFunc(self.on_quit))
+

@@ -1,5 +1,5 @@
 import cocos
-from cocos.layer import Layer
+from cocos.layer import Layer,ColorLayer
 from cocos.sprite import *
 from cocos.director import *
 import time
@@ -9,8 +9,8 @@ import cocos.collision_model as cm
 import cocos.euclid as eu
 import os
 import pyglet
-
-
+from cocos.scene import Scene
+from .background import BackGround
 
 # 飞船发射的子弹
 class Bullet(Sprite):
@@ -106,14 +106,12 @@ class ShipSprite(Sprite):
         self.tailFire.angle= 270
         self.add(self.tailFire)
         self.shake_action = ScaleBy(1.2, duration=0.7) + Reverse(ScaleBy(1.2, duration=0.5))  # 抖动特效
-        self.explode_action = ScaleBy(1.1, duration=0.4) + Reverse(ScaleBy(1.2, duration=0.3)) #爆炸特效
+
 
         self.do(Repeat(self.shake_action))  #开启抖动
 
     def explode(self):
-
-        self.do(Repeat(self.explode_action))
-        self.delete()
+        self.do(MoveTo((director.window.width/2,director.window.height/2),duration = 1.8)+Shaky3D(grid=(36,22), duration=1)+StopGrid())
 
     def shoot(self,speed = 0):
         from random import randint
@@ -124,28 +122,44 @@ class ShipSprite(Sprite):
         return bullet
 
 
+
 #血条
-class BloodLine(Sprite):
+class BloodLine(Layer):
     def __init__(self):
+
+
+        #===================self==================================
+        super(BloodLine,self).__init__()
         self.bloodPercent = 100
         self.bloodLine_image = pyglet.image.load(os.path.normpath("../static/bloodline.png"))
-        super(BloodLine,self).__init__(self.bloodLine_image)
-        self.anchor_x = 0
 
-        self.position = int(director.window.width*0.6),int(director.window.height*0.05)
-        self.anchor_x = 0
-        self.scale_x = 1.8
-        self.scale_y = 0.8
+        #===================bg==================================
+        self.bloodLine_bg = Sprite(self.bloodLine_image,anchor=(0,self.bloodLine_image.height/2))
+        self.bloodLine_bg.position = int(director.window.width * 0.3), int(director.window.height * 0.05)
+        # self.bloodLine_bg.image_anchor_x = self.bloodLine_bg.position[0]
+        self.bloodLine_bg.color = (153, 56, 100)
+        self.bloodLine_bg.scale_x = 1.8
+        self.bloodLine_bg.scale_y = 0.8
+        self.add(self.bloodLine_bg)
+
+        #===================front==================================
+        self.bloodLine = Sprite(self.bloodLine_image,anchor=(0,self.bloodLine_image.height/2))
+        self.bloodLine.position = self.bloodLine_bg.position
+        self.bloodLine.scale_x = 1.8
+        self.bloodLine.scale_y = 0.8
+        self.add(self.bloodLine)
+
+
+
 
     def lossBlood(self,d_bloodPercent):
         self.bloodPercent-=d_bloodPercent
         if(self.bloodPercent>0 and d_bloodPercent>0):
-            # loss_blood_action = ScaleBy(float((self.bloodPercent-d_bloodPercent))/self.bloodPercent,0.1)
-            self.scale_x *= float((self.bloodPercent-d_bloodPercent)/self.bloodPercent)
-            # self.do(loss_blood_action)
+            self.bloodLine.do(Scale_X_To(1.8/100.0*self.bloodPercent,duration = 1))
 
 
-#游戏控制
+
+
 class PlayerLayer(Layer):
 
     is_event_handler = True
@@ -154,10 +168,12 @@ class PlayerLayer(Layer):
     time = 0
 
 
-    def __init__(self):
 
+    def __init__(self,next_scene):
+        print("Creaete one player layer")
+        cocos.director.director.window.set_mouse_visible(False)
         super(PlayerLayer,self).__init__()
-
+        self.next_scene = next_scene
         self.shipSprite = ShipSprite()
         self.add(self.shipSprite)
 
@@ -201,7 +217,7 @@ class PlayerLayer(Layer):
             #右键
             if(self.time_speed>1):
                 self.do(Waves( waves=1, hsin=True, vsin=True,
-                          grid=(36,20), duration=1) )
+                          grid=(36,20), duration=1))
             else:
                 self.do(Waves( waves=1, hsin=True, vsin=True,grid=(36,20), duration=1)+StopGrid())
             self.time_speed = 1.0/self.time_speed
@@ -224,14 +240,12 @@ class PlayerLayer(Layer):
 
     #删除敌人
     def deleteEnemy(self,en):
-        self.remove(en)
         self.enemy_set.remove(en)
-        en.delete()
+        self.remove(en)
     #删除子弹
     def deleteBullet(self,bu):
-        self.remove(bu)
         self.bullet_set.remove(bu)
-        bu.delete()
+        self.remove(bu)
 
     #得分
     def Scored(self,value):
@@ -242,6 +256,8 @@ class PlayerLayer(Layer):
     #用于检测撞击
     def check_hit(self,*args,**kwargs):
         self.time +=1
+        if(self.time%20==0):
+            self.Scored(1)
         #定时产生敌人
         if (self.time_speed < 1):
             enemy_generate_frequence = int(10/ self.time_speed)
@@ -251,10 +267,6 @@ class PlayerLayer(Layer):
             self.generateEnemy()
 
         for b in self.bullet_set:
-            #删除无效子弹
-            if(b.y>1700 or b.y <0):
-                self.deleteBullet(b)
-
             for en in self.enemy_set:
             #检查是否击中敌人
                 if(b.hit(en)):
@@ -264,10 +276,15 @@ class PlayerLayer(Layer):
 
             #检查自己是否被击中
             if(b.hit(self.shipSprite,length=800)):
-                self.shipSprite.do(Blink(1,0.1))
+                self.shipSprite.do(Shaky3D(grid=(36,22), duration=0.2)+StopGrid())
                 self.deleteBullet(b)
-                self.bloodline.lossBlood(20)
-
+                self.bloodline.lossBlood(30)
+                if(self.bloodline.bloodPercent<=0):
+                    director.window.remove_handlers(self) #取消鼠标控制
+                    self.on_quit()
+            #删除无效子弹
+            if(b.y>1700 or b.y <0):
+                self.deleteBullet(b)
 
         for en in self.enemy_set:
             en.actionValue+=1
@@ -285,6 +302,51 @@ class PlayerLayer(Layer):
                     one_bullet.fly(one_bullet.speed*self.time_speed)
                 self.add(one_bullet)
                 self.bullet_set.append(one_bullet)
+
             #删除无效敌人
             if(en.y<-10):
                 self.deleteEnemy(en)
+
+    def go_next_scene(self):
+        director.window.remove_handlers(self)  # 取消鼠标控制
+        for c in self.get_children():
+            self.remove(c)
+        cocos.director.director.window.set_mouse_visible(True)
+        director.replace(self.next_scene)
+
+    def on_quit(self):
+        director.window.remove_handlers(self)  # 取消鼠标控制
+        self.pause_scheduler()
+        self.bullet_set.clear()
+        self.enemy_set.clear()
+
+        self.shipSprite.explode()
+        director.scene.do(Shaky3D(grid=(24,16), duration=3)+FadeOutTRTiles(grid=(24,16), duration=3)+CallFunc(self.go_next_scene))
+
+class Scale_X_To(IntervalAction):
+    """Scales a `CocosNode` object to a zoom factor by modifying it's scale attribute.
+
+    Example::
+
+        # scales the sprite to 5x in 2 seconds
+        action = ScaleTo(5, 2)
+        sprite.do(action)
+    """
+    def init(self, scale_x, duration=5):
+        """Init method.
+
+        :Parameters:
+            `scale` : float
+                scale factor
+            `duration` : float
+                Duration time in seconds
+        """
+        self.end_scale_x = scale_x
+        self.duration = duration
+
+    def start(self):
+        self.start_scale_x = self.target.scale_x
+        self.delta = self.end_scale_x - self.start_scale_x
+
+    def update(self, t):
+        self.target.scale_x = self.start_scale_x + self.delta*t

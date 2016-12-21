@@ -8,16 +8,9 @@ import cocos
 from  .layer.background import BackGround
 from .mouse import MouseDisplay
 
-collisionManager = CollisionManager()
 
 class TimeWalk():
     def __init__(self):
-        self.collisionManager = collisionManager
-
-        backGroungLayer = BackGround()
-        director.run(scene=Scene(backGroungLayer,StartMenuLayer()))
-
-        from source.TimeWalk.mouse import MouseDisplay
-        cocos.director.director.window.set_mouse_visible(False)
-        director.run(scene=Scene(backGroungLayer,PlayerLayer()))
-
+        self.score = 0
+        cocos.director.director.window.set_mouse_visible(True)
+        director.run(Scene(BackGround(),StartMenuLayer()))
