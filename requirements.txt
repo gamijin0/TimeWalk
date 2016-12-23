@@ -1,2 +1,4 @@
+cocos2dx-python
 pyglet
+numpy
 six

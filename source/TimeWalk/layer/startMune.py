@@ -11,7 +11,7 @@ from .background import BackGround
 
 class StartMenuLayer(Menu):
     def __init__( self ):
-        super( StartMenuLayer, self ).__init__("Timer Walker" )
+        super( StartMenuLayer, self ).__init__("Time Walker" )
 
         self.menu_valign = CENTER
         self.menu_halign = CENTER
@@ -29,8 +29,10 @@ class StartMenuLayer(Menu):
 
 
     def on_quit(self):
+
         director.replace(Scene(BackGround(),PlayerLayer(next_scene=Scene(BackGround(),StartMenuLayer()))))
 
     def go_next_scene(self):
         self.do(FadeOutTRTiles(grid=(36,22), duration=1)+CallFunc(self.on_quit))
+
 

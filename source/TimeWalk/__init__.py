@@ -6,7 +6,6 @@ from .layer.palyer import PlayerLayer
 import pyglet
 import cocos
 from  .layer.background import BackGround
-from .mouse import MouseDisplay
 
 
 class TimeWalk():

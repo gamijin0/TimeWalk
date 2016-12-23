@@ -42,16 +42,15 @@ class Bullet(Sprite):
 
 #敌人
 class EnemySprite(Sprite):
+    enemy_file_list = [
+        "space-ship", "space-ship", "rocket-ship-2", "space-shuttle-2", "ufo", "space-station", "space-station-1"
+    ]
     #敌人
-    def __init__(self,x,y):
-        enemy_file_list = [
-            "space-ship","space-ship","rocket-ship-2","space-shuttle-2","ufo"
-        ]
-        from random import randint
+    def __init__(self,x,y,type:int):
 
         self.team = 2
         self.speed = 60
-        self.ship_image = pyglet.image.load(os.path.normpath("../static/%s.png" % (enemy_file_list[randint(0,len(enemy_file_list)-1)]) ))
+        self.ship_image = pyglet.image.load(os.path.normpath("../static/%s.png" % (self.enemy_file_list[type%len(self.enemy_file_list)]) ))
         super(EnemySprite, self).__init__(self.ship_image)
         self.scale=0.14 #大小
         self.do(Rotate(180,duration=0))
@@ -170,7 +169,7 @@ class PlayerLayer(Layer):
 
 
     def __init__(self,next_scene):
-        print("Creaete one player layer")
+        # print("Creaete one player layer")
         cocos.director.director.window.set_mouse_visible(False)
         super(PlayerLayer,self).__init__()
         self.next_scene = next_scene
@@ -196,6 +195,18 @@ class PlayerLayer(Layer):
 
 
         self.add(self.scoreLabel)
+
+        self.wave = 0  #当前关卡数
+
+        self.waveLabel = cocos.text.Label(
+            'Wave: \t0 ',
+            font_name='Times New Roman',
+            font_size=32,
+            anchor_x='center', anchor_y='center'
+        )
+        self.waveLabel.position = int(director.window.width * 0.9), int(director.window.height * 0.8)
+
+        self.add(self.waveLabel)
 
     #鼠标移动时触发
     def on_mouse_motion(self,x,y,dx,dy):
@@ -230,7 +241,7 @@ class PlayerLayer(Layer):
     #产生敌人
     def generateEnemy(self):
         from random import randint
-        one_enemy = EnemySprite(randint(200,1200),1300)
+        one_enemy = EnemySprite(randint(200,1200),1300,type=self.wave%len(EnemySprite.enemy_file_list))
         self.add(one_enemy)
         self.enemy_set.append(one_enemy)
         one_enemy.fly(
@@ -252,12 +263,16 @@ class PlayerLayer(Layer):
         if(value>0):
             self.score+=value
             self.scoreLabel.element.text = "Score: \t%d" % (self.score)
+            self.waveLabel.element.text = "Wave: \t%d" % (self.wave-1)
+
 
     #用于检测撞击
     def check_hit(self,*args,**kwargs):
+
         self.time +=1
-        if(self.time%20==0):
-            self.Scored(1)
+
+        self.wave = int(self.score/100) + 1
+
         #定时产生敌人
         if (self.time_speed < 1):
             enemy_generate_frequence = int(10/ self.time_speed)
@@ -287,7 +302,8 @@ class PlayerLayer(Layer):
                 self.deleteBullet(b)
 
         for en in self.enemy_set:
-            en.actionValue+=1
+            from random import randint
+            en.actionValue+=randint(1,4)
 
             enemy_shoot_frequence = 50.0
             if(self.time_speed<1):
