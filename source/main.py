@@ -1,8 +1,7 @@
 import pyglet
 import cocos
 
-from source.TimeWalk import TimeWalk
-
+from timewalk import TimeWalk
 
 
 if(__name__=="__main__"):
