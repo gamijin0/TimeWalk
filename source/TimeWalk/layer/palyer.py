@@ -106,13 +106,22 @@ class ShipSprite(Sprite):
         self.add(self.tailFire)
         self.shake_action = ScaleBy(1.2, duration=0.7) + Reverse(ScaleBy(1.2, duration=0.5))  # 抖动特效
 
-
         self.do(Repeat(self.shake_action))  #开启抖动
 
+
+
     def explode(self):
-        self.do(MoveTo((director.window.width/2,director.window.height/2),duration = 1.8)+Shaky3D(grid=(36,22), duration=1)+StopGrid())
+        explode_sounds = pyglet.media.load("../static/sounds/explode.wav")
+        self.do(
+            MoveTo((director.window.width/2,director.window.height/2),duration = 1.8)
+            +CallFunc(explode_sounds.play)
+            +Shaky3D(grid=(36,22), duration=1)
+            +StopGrid()
+        )
 
     def shoot(self,speed = 0):
+        shoot_sounds = pyglet.media.load("../static/sounds/shoot.wav")
+        shoot_sounds.play()
         from random import randint
         if(speed==0):
             bullet  = Bullet(self.x,self.y+50,speed=50+randint(0,30),team=1)
@@ -152,6 +161,10 @@ class BloodLine(Layer):
 
 
     def lossBlood(self,d_bloodPercent):
+
+        loss_blood_sound  = pyglet.media.load("../static/sounds/loss_blood.wav")
+        loss_blood_sound.play()
+
         self.bloodPercent-=d_bloodPercent
         if(self.bloodPercent>0 and d_bloodPercent>0):
             self.bloodLine.do(Scale_X_To(1.8/100.0*self.bloodPercent,duration = 1))
@@ -207,6 +220,7 @@ class PlayerLayer(Layer):
         self.waveLabel.position = int(director.window.width * 0.9), int(director.window.height * 0.8)
 
         self.add(self.waveLabel)
+        self.player = pyglet.media.Player()
 
     #鼠标移动时触发
     def on_mouse_motion(self,x,y,dx,dy):
@@ -226,11 +240,19 @@ class PlayerLayer(Layer):
             self.bullet_set.append(one_bullet)
         if(buttons==4 ):
             #右键
+
+            # self.player.queue(time_slow_sound)
+            # self.player.
+
+            time_slow = pyglet.media.load("../static/sounds/time_slow_1.wav")
+            time_slow.play()
+
             if(self.time_speed>1):
                 self.do(Waves( waves=1, hsin=True, vsin=True,
                           grid=(36,20), duration=1))
             else:
                 self.do(Waves( waves=1, hsin=True, vsin=True,grid=(36,20), duration=1)+StopGrid())
+
             self.time_speed = 1.0/self.time_speed
 
             for en in self.enemy_set:

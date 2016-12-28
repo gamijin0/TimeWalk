@@ -26,10 +26,13 @@ class StartMenuLayer(Menu):
 
         self.create_menu( items, selected_effect=shake()+zoom_in(),
                           unselected_effect=zoom_out())
-
+        self.player = pyglet.media.Player()
+        start_background_sound = pyglet.media.load("../static/sounds/start_background.wav")
+        self.player.queue(start_background_sound)
+        self.player.play()
 
     def on_quit(self):
-
+        self.player.delete()
         director.replace(Scene(BackGround(),PlayerLayer(next_scene=Scene(BackGround(),StartMenuLayer()))))
 
     def go_next_scene(self):
